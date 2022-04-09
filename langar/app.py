@@ -7,14 +7,16 @@ from langar.models import Client
 app = Flask(__name__)
 
 @app.route('/')
-def registration():
+@app.route('/register')
+def register_get():
     return render_template('register.html')
 
 @app.route('/register', methods=['POST'])
-def register():
-    print(request.form)
+def register_post():
     client = Client(**request.form)
-    return (client.__dict__)
+    client.save()
+    print(client.__dict__)
+    return render_template('register.html', success=True)
 
 def run():
     app.run(debug=True)

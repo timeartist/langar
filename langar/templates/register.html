@@ -8,9 +8,15 @@
     </style>
 {% endblock %}
 {% block body %}
+    {% if success %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>Client Registered Successfully!</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
     <div class="container-fluid container-main">
         <div class="row">
-            <h2>Registration</h2> 
+            <h2>Register</h2> 
         </div>
         <div class="row">
             &nbsp;

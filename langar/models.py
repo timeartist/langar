@@ -1,4 +1,4 @@
-import email
+from json import loads, dumps
 
 
 class Client:
@@ -11,4 +11,16 @@ class Client:
         self.phone_number = phone_number
         self.email_address = email_address
         self.homelessness = homelessness == 'true'
+        self.adults = int(adults)
+        self.minors = int(minors)
+        self.seniors = int(seniors)
 
+    def save(self):
+        with open('data/clients.json', 'r') as f:
+            clients = loads(f.read())
+        
+        print(clients)
+        clients.append(self.__dict__)
+
+        with open('data/clients.json', 'w') as f:
+            f.write(dumps(clients))
