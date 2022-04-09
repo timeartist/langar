@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block header %}
+    <style type="text/css">
+        .container-main{margin-top: 20px; margin-left: 10px;}
+        .homelessness-input{margin-top:38px; text-align:center;}
+        .submit-button{margin-left:80%; margin-top:20px; width:100px;}
+        form{margin-right:20px;}
+    </style>
+{% endblock %}
+{% block body %}
+    <div class="container-fluid container-main">
+        <div class="row">
+            <h2>Registration</h2> 
+        </div>
+        <div class="row">
+            &nbsp;
+        </div>
+        <form action="/register" method="POST">
+            <div class="row">           
+                <div class="col-sm">
+                    <label for="firstName" class="form-label">First Name:</label>
+                    <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Harmony">
+                </div>
+                <div class="col-sm">
+                    <label for="lastName" class="form-label">Last Name:</label>
+                    <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Mountainsong">
+                </div>
+            </div>
+            <div class="row">
+                &nbsp; 
+            </div>
+            <div class="row">
+                <div class="col-sm">
+                    <label for="dob" class="form-label">Date of Birth:</label>
+                    <input type="date" class="form-control" id="dob" name="dob" >
+                </div>
+                <div class="col-sm">
+                    <label for="zipCode" class="form-label">Zip Code:</label>
+                    <input type="number" class="form-control" id="zipCode" name="zip_code" placeholder="80466">
+                </div>
+                <div class="col-sm">
+                    <div class="homelessness-input">
+                        <input type="checkbox" class="form-check-input" id="homelessness" name="homelessness" value="true">
+                        <label for="homelessness" class="form-check-label">Experiencing Homelessness?</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                &nbsp; 
+            </div>
+            <div class="row">
+                <div class="col-sm">
+                    <label for="phoneNumber" class="form-label">Phone Number:</label>
+                    <input type="tel" class="form-control" id="phoneNumber" name="phone_number" placeholder="303-867-5309">
+                </div>
+                <div class="col-sm">
+                    <label for="emailAddress" class="form-label">E-Mail Address:</label>
+                    <input type="email" class="form-control" id="emailAddress" name="email_address" placeholder="you@where.com">
+                </div>
+            </div>
+            <div class="row">
+                &nbsp;
+            </div>
+            <div class="row">
+                <div class="col-sm">
+                    <label for="numAdults" class="form-label">Adults:</label>
+                    <select class="form-select" id="numAdults" name="adults">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                    </select>
+                </div>
+                <div class="col-sm">
+                    <label for="numMinors" class="form-label">Children:</label>
+                    <select class="form-select" id="numMinors" name="minors">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                    </select>
+                </div>
+                <div class="col-sm">
+                    <label for="numSeniors" class="form-label">Seniors:</label>
+                    <select class="form-select" id="numSeniors" name="seniors">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                    </select>
+                </div>  
+            </div>
+            <div class="row">
+                &nbsp;
+            </div>
+            <div class="row">
+                <div class="submit-button">
+                    <button type="submit" class="btn btn-primary submit-button">Submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
