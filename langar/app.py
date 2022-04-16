@@ -30,7 +30,7 @@ def register_get():
 def register_post():
     client = Client(**request.form)
     client.save()
-    print(client.__dict__)
+    CheckIn(**client.__dict__)
     return render_template('register.html', success=True)
 
 def run():
