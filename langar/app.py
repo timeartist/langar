@@ -18,8 +18,7 @@ def check_in_get():
         results = Client.find(query)
     else:
         results = None
-    
-    print(results)
+
     return render_template('check_in.html', results=results, query=query)
     
 @app.route('/register')
