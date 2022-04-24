@@ -32,6 +32,6 @@ Data is created and maintained in CSV files.  This allows food banks to utilize 
 Redis and RediSearch are utilized to provide maximum searchability with minimial requirements from a code or operations perspective.  
 
 ## Questions, Derivative Works
-Please reach out to adi@nederlandfoodpantry.org if you have any questions.  This work is officially **PUBLIC DOMAIN**. Please utilize it to help enable your operations. This is **VERY** basic software. There is no commercial advantage in deriving from it, probably the opposite.  But feel free if you so desire.
+Please reach out to adi@nederlandfoodpantry.org if you have any questions.  This work is officially **PUBLIC DOMAIN**. Please utilize it to help enable your operations. This is **VERY** basic software. There is no commercial advantage in deriving from it, probably the opposite.  But feel free if you so desire - I'm not responsible for the results.  That's basically what the License file says, but it's fancier.  It's actually what matters.
 
 *"Everything comes by the Lord's Will, and everything goes by the Lord's Will." - Sri Guru Granth Sahib - Ang 556*
