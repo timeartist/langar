@@ -9,16 +9,20 @@ app = Flask(__name__)
 def check_in_get():
     query = request.args.get('query')
     id = request.args.get('id')
+    results = None
+    client = None
 
+    ## checking in client path
     if id is not None:
-        results = Client.find(f'@id:{id}')
-        client = results[0]
+        _results = Client.find(f'@id:{id}')
+        client = _results[0]
         checkins = CheckIn(**client).checkins_to_list()
+    ## finding client path
     elif query is not None:
         results = Client.find(query)
         checkins = CheckIn().checkins_to_list()
+    ## default path
     else:
-        results = None
         checkins = CheckIn().checkins_to_list()
 
     totals = {'adults':0, 'minors':0, 'seniors':0}
@@ -27,7 +31,7 @@ def check_in_get():
         totals['minors'] += int(checkin['minors'])
         totals['seniors'] += int(checkin['seniors'])
 
-    return render_template('check_in.html', results=results, query=query, checkins=checkins, totals=totals, clients=Client.batch_to_dict())
+    return render_template('check_in.html', results=results, query=query, checkins=checkins, totals=totals, clients=Client.batch_to_dict(), client=client)
     
 @app.route('/register')
 def register_get():

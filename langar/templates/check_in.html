@@ -2,14 +2,20 @@
 {% block header %}
     <style type="text/css">
         .container-main{margin-top: 20px; margin-left: 10px;}
-        .container-form{padding-right:30px;}
-        .container-table{padding-right:30px;}
+        .container-form, .container-table{padding-right:30px;}
+        .alert{margin-right:30px;}
         .add-client-button{width:150px; float:right; margin-right:30px;}
         td, th{text-align: center;}
     </style>
 {% endblock %}
 {% block body %}
     <div class="container-fluid container-main">
+        {% if client is not none %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <strong>{{client['first_name']}} {{client['last_name']}} Checked In Successfully!</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
         <div class="row">
             <h2>Check-In</h2> 
         </div>
