@@ -80,5 +80,67 @@
         <div class="row">
             <a href='/register'><button class="add-client-button btn btn-outline-success"><i class="bi bi-person-plus-fill"></i> Add Client</button></a>
         </div>
+        {% if checkins %}
+            <div class="row">
+                &nbsp;
+            </div>
+            <div class="row">
+                <h4>Today's Distribution</h4>
+            </div>
+            <div class="row">
+                <div class="container-table">
+                    <table class="table">
+                        <thead>
+                            <th scope="col">ID</th>
+                            <th scope="col">First Name</th>
+                            <th scope="col">Last Name</th>
+                            <th scope="col">Adults</th>
+                            <th scope="col">Children</th>
+                            <th scope="col">Seniors</th>
+                        </thead>
+                        <tbody>
+                            {% for checkin in checkins %}
+                                <tr>
+                                    <th scope="row">
+                                        {{checkin['id']}}
+                                    </th>
+                                    <td>
+                                        {{clients[checkin['id']]['first_name']}}
+                                    </td>
+                                    <td>
+                                        {{clients[checkin['id']]['last_name']}}
+                                    </td>
+                                    <td>
+                                        {{checkin['adults']}}
+                                    </td>
+                                    <td>
+                                        {{checkin['minors']}}
+                                    </td>
+                                    <td>
+                                        {{checkin['seniors']}}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <th scope="row">
+                                    Totals
+                                </th>
+                                <td>
+                                    {{totals['adults']}}
+                                </td>
+                                <td>
+                                    {{totals['minors']}}
+                                </td>
+                                <td>
+                                    {{totals['seniors']}}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endif %}
     </div>
 {% endblock %}

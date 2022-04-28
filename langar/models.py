@@ -42,7 +42,7 @@ def _read_clients_csv():
 
 class Client:
     def __init__(self, first_name, last_name, dob, zip_code, adults, minors, seniors,
-                 phone_number=None, email_address=None, homelessness='false') -> None:
+                 phone_number=None, email_address=None, homelessness='false', **_) -> None:
         self.id = str(uuid4()).replace('-', '')
         self.first_name = first_name
         self.last_name = last_name
@@ -57,10 +57,11 @@ class Client:
         
 
     @staticmethod
-    def batch_from_json():
+    def batch_from_csv():
         _client_index()
 
         clients = _read_clients_csv()
+        print(clients)
 
         with R.pipeline(transaction=False) as pipe:
             for client in clients:
@@ -68,6 +69,14 @@ class Client:
                 pipe.json().set(_client_key(client['id']), Path.root_path(), client)
             
             pipe.execute()
+
+    @staticmethod
+    def batch_to_dict():        
+        client_data = _read_clients_csv()
+        clients = {}
+        for client in client_data:
+            clients[client['id'].replace('-', '')] = client
+        return clients
 
     @staticmethod
     def find(query):
@@ -88,7 +97,7 @@ class Client:
             dw.writerows(clients)
 
 class CheckIn:
-    def __init__(self, id, zip_code, dob, adults, minors, seniors, **kwargs) -> None:
+    def __init__(self, id=None, zip_code=None, dob=None, adults=None, minors=None, seniors=None, **_) -> None:
         self.date = datetime.today().isoformat().split('T')[0]
         self.file = f'data/distributions/distribution-{self.date}.csv'
         self.id = id
@@ -97,29 +106,35 @@ class CheckIn:
         self.adults = adults
         self.minors = minors
         self.seniors = seniors
+        self._checkins = []
 
-        R.json().set(_checkin_key(self.id), Path.root_path(), self.__dict__)
-
+        ## create checkin file if it doesn't exist already
         if not glob(self.file):
-            open(self.file, 'w+')
-            checkins = []
+            open(self.file, 'w+') 
+        ## otherwise open and read it
         else:
             with open(self.file, 'r') as f:
                 rows = DictReader(f)
-                checkins = [row for row in rows]
+                self._checkins = [row for row in rows]
 
-        data = self.__dict__.copy()
-        data.pop('date')
-        data.pop('file')
-        checkins.append(data)
+        ## if this is a new checkin, add it to redis and the data file
+        if self.id is not None:
+            R.json().set(_checkin_key(self.id), Path.root_path(), self.__dict__)
+            
+            ## filter out any data we don't want in the file from the obj, and add this 
+            data = self.__dict__.copy()
+            data.pop('date')
+            data.pop('file')
+            data.pop('_checkins')
+            self._checkins.append(data)
 
-        with open(self.file, 'w') as f:
-            dw = DictWriter(f, _checkin_file_headers)
-            dw.writeheader()
-            dw.writerows(checkins)
+            with open(self.file, 'w') as f:
+                dw = DictWriter(f, _checkin_file_headers)
+                dw.writeheader()
+                dw.writerows(self._checkins)
 
-
-
+    def checkins_to_list(self):
+        return self._checkins
 
 
 def _deserialize_results(results) -> list:
