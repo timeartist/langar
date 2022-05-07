@@ -128,11 +128,14 @@
                                 </tr>
                             {% endfor %}
                             <tr>
-                                <td></td>
+                                <td>
+                                    <b>Households:</b> {{ checkins|length }}
+                                </td>
                                 <td></td>
                                 <th scope="row">
                                     Totals
                                 </th>
+
                                 <td>
                                     {{totals['adults']}}
                                 </td>
