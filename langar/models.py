@@ -4,6 +4,7 @@ from csv import DictReader, DictWriter
 from datetime import datetime
 from glob import glob
 
+from flask_login import UserMixin
 
 from redis import StrictRedis
 from redis.exceptions import ResponseError
@@ -19,26 +20,6 @@ _checkin_file_headers = ['id', 'zip_code', 'dob', 'adults', 'minors', 'seniors']
 _client_key = lambda id: f'client:{id}'
 _client_file_headers =  keys = ['id', 'first_name', 'last_name', 'dob', 'zip_code', 'phone_number', 'email_address', 'homelessness', 'adults', 'minors', 'seniors']
 
-def _client_index():
-    idx = R.ft(_client_key('idx'))
-    try:
-        idx.info()
-        return idx
-    except ResponseError:
-        pass
-
-    idx.create_index((
-        TextField('$.id', as_name='id'),
-        TextField('$.first_name', as_name='first'),
-        TextField('$.last_name', as_name='last')
-    ), definition=IndexDefinition(prefix=[_client_key('')], index_type=IndexType.JSON))
-
-    return idx
-
-def _read_clients_csv():
-    with open('data/clients.csv', 'r') as f:
-        rows = DictReader(f)
-        return [row for row in rows]
 
 class Client:
     def __init__(self, first_name, last_name, dob, zip_code, adults, minors, seniors,
@@ -58,9 +39,9 @@ class Client:
 
     @staticmethod
     def batch_from_csv():
-        _client_index()
+        Client._client_index()
 
-        clients = _read_clients_csv()
+        clients = Client._read_clients_csv()
         print(clients)
 
         with R.pipeline(transaction=False) as pipe:
@@ -72,7 +53,7 @@ class Client:
 
     @staticmethod
     def batch_to_dict():        
-        client_data = _read_clients_csv()
+        client_data = Client._read_clients_csv()
         clients = {}
         for client in client_data:
             clients[client['id'].replace('-', '')] = client
@@ -80,13 +61,13 @@ class Client:
 
     @staticmethod
     def find(query):
-        idx = _client_index()
+        idx = Client._client_index()
         query = Query(query)
         return _deserialize_results(idx.search(query))
 
 
     def save(self):
-        clients = _read_clients_csv()
+        clients = Client._read_clients_csv()
 
         clients.append(self.__dict__)
         R.json().set(_client_key(self.id), Path.root_path(), self.__dict__)
@@ -95,6 +76,29 @@ class Client:
             dw = DictWriter(f, _client_file_headers)
             dw.writeheader()
             dw.writerows(clients)
+
+    @staticmethod
+    def _read_clients_csv():
+        with open('data/clients.csv', 'r') as f:
+            rows = DictReader(f)
+            return [row for row in rows]
+
+    @staticmethod
+    def _client_index():
+        idx = R.ft(_client_key('idx'))
+        try:
+            idx.info()
+            return idx
+        except ResponseError:
+            pass
+
+        idx.create_index((
+            TextField('$.id', as_name='id'),
+            TextField('$.first_name', as_name='first'),
+            TextField('$.last_name', as_name='last')
+        ), definition=IndexDefinition(prefix=[_client_key('')], index_type=IndexType.JSON))
+
+        return idx
 
 class CheckIn:
     def __init__(self, id=None, zip_code=None, dob=None, adults=None, minors=None, seniors=None, **_) -> None:
@@ -136,6 +140,39 @@ class CheckIn:
     def checkins_to_list(self):
         return self._checkins
 
+class UserNotFoundException(Exception):
+    pass
+
+class User(UserMixin):
+    @staticmethod
+    def _key(id):
+        return f'user:{id}'
+
+    def __init__(self, sub, name, email, picture, **_) -> None:
+        self.sub = sub
+        self.name = name
+        self.email = email
+        self.picture = picture
+        
+        self._create_user_if_not_exists()
+
+    def _create_user_if_not_exists(self):
+        existing_user = R.json().get(User._key(self.sub))
+        if existing_user is None:
+            R.json().set(User._key(self.sub), Path.root_path(), self.__dict__)
+
+    @staticmethod
+    def from_id(id):
+        user_data = R.json().get(User._key(id))
+        if user_data:
+            return User(**user_data)
+        else:
+            raise UserNotFoundException
+
+    def get_id(self):
+        return self.sub
+
+        
 
 def _deserialize_results(results) -> list:
     '''turn a list of json at results.docs into a list of dicts'''
