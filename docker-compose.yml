@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  langar:
+    environment:
+      - GOOGLE_OAUTH_CLIENT_ID=${GOOGLE_OAUTH_CLIENT_ID}
+      - GOOGLE_OAUTH_CLIENT_SECRET=${GOOGLE_OAUTH_CLIENT_SECRET}
+      - REDIS_URL=redis://redis:6379
+    build: 
+      context: .
+      args:
+        - GCP_AUTH=${GCP_AUTH}
+        - DOMAIN=${DOMAIN}
+        - NOTIFICATION_EMAIL=${NOTIFICATION_EMAIL}
+    ports: 
+      - "443:443"
+    depends_on:
+      - redis
+  redis:
+    image: redislabs/redisearch:2.4.3
+
