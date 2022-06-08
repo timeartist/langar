@@ -9,7 +9,7 @@ ARG GCP_AUTH
 ARG NOTIFICATION_EMAIL
 ARG DOMAIN
 ARG STAGING=--test-cert
-ENV INSTALL_DIR=/opt/demo-gallery
+ENV INSTALL_DIR=/opt/langar
 ENV DOMAIN=${DOMAIN}
 
 WORKDIR /tmp
@@ -20,8 +20,12 @@ RUN echo ${GCP_AUTH} > /tmp/auth.json && chmod 600 /tmp/auth.json && certbot cer
 #setup nginx
 
 COPY nginx-conf langar.conf.template
-WORKDIR /etc/nginx/http.d
+WORKDIR /etc/nginx/sites-available
 RUN envsubst '${DOMAIN}' < /tmp/langar.conf.template > langar.conf
+WORKDIR /etc/nginx/sites-enabled
+RUN ln -s ../sites-available/langar.conf .
+RUN rm default
+
 RUN certbot install --nginx -d ${DOMAIN} --cert-name=${DOMAIN} --redirect
 
 ## setup app

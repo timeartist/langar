@@ -1,5 +1,6 @@
+from os import environ
 from uuid import uuid4
-from json import loads, dumps
+from json import loads
 from csv import DictReader, DictWriter
 from datetime import datetime
 from glob import glob
@@ -13,7 +14,7 @@ from redis.commands.search.field import TextField
 from redis.commands.search.query import Query
 from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 
-R = StrictRedis()
+R = StrictRedis.from_url(environ.get('REDIS_URL', 'redis://localhost:6379'))
 
 _checkin_key = lambda id: f'checkin:{id}'
 _checkin_file_headers = ['id', 'zip_code', 'dob', 'adults', 'minors', 'seniors']
@@ -170,6 +171,7 @@ class User(UserMixin):
             raise UserNotFoundException
 
     def get_id(self):
+        print('auth is getting id')
         return self.sub
 
         

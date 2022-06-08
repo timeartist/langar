@@ -12,6 +12,7 @@ services:
         - GCP_AUTH=${GCP_AUTH}
         - DOMAIN=${DOMAIN}
         - NOTIFICATION_EMAIL=${NOTIFICATION_EMAIL}
+        - STAGING=${STAGING}
     ports: 
       - "443:443"
     depends_on:

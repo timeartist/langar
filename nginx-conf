@@ -1,7 +1,7 @@
   server {
     listen 80;
     server_name ${DOMAIN};
-    access_log  /var/log/nginx/gallery.log;
+    access_log  /var/log/nginx/langar.log;
 
     location / {
         proxy_pass http://127.0.0.1:8000;

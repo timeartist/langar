@@ -8,8 +8,8 @@ from oauthlib.oauth2 import WebApplicationClient
 from langar.models import Client, CheckIn, User, UserNotFoundException
 
 ALLOWED_EMAIL_DOMAIN = environ.get('ALLOWED_EMAIL_DOMAIN', 'nederlandfoodpantry.org')
-GOOGLE_CLIENT_ID = environ.get('GOOGLE_CLIENT_ID')
-GOOGLE_CLIENT_SECRET = environ.get('GOOGLE_CLIENT_SECRET')
+GOOGLE_CLIENT_ID = environ.get('GOOGLE_OAUTH_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = environ.get('GOOGLE_OAUTH_CLIENT_SECRET')
 GOOGLE_DISCOVERY_URL = 'https://accounts.google.com/.well-known/openid-configuration'
 GOOGLE_PROVIDER_CONF = requests.get(GOOGLE_DISCOVERY_URL).json()
 
@@ -25,27 +25,31 @@ lm.login_view = 'login'
 @lm.user_loader
 def load_user(id):
     try:
-        return User.from_id(id)
+        print(f'getting user {id}')
+        user = User.from_id(id)
+        print(user.get_id())
+        return user
     except UserNotFoundException:
         return None
 
 @app.route("/login")
 def login():
     # Find out what URL to hit for Google login
-    
+    print('login start')
     authorization_endpoint = GOOGLE_PROVIDER_CONF["authorization_endpoint"]
 
     # Use library to construct the request for Google login and provide
     # scopes that let you retrieve user's profile from Google
     request_uri = WAC.prepare_request_uri(
         authorization_endpoint,
-        redirect_uri=request.base_url + "/callback",
+        redirect_uri=request.base_url.replace('http', 'https') + "/callback",
         scope=["openid", "email", "profile"],
     )
     return redirect(request_uri)
 
 @app.route("/login/callback")
 def callback():
+    print('callback start')
     # Get authorization code Google sent back to you
     code = request.args.get("code")
     token_endpoint = GOOGLE_PROVIDER_CONF["token_endpoint"]
@@ -53,8 +57,8 @@ def callback():
     # Prepare and send a request to get tokens! Yay tokens!
     token_url, headers, body = WAC.prepare_token_request(
         token_endpoint,
-        authorization_response=request.url,
-        redirect_url=request.base_url,
+        authorization_response=request.url.replace('http', 'https'),
+        redirect_url=request.base_url.replace('http', 'https'),
         code=code
     )
     token_response = requests.post(
@@ -72,7 +76,9 @@ def callback():
     
     if userinfo['email'].lower().endswith(ALLOWED_EMAIL_DOMAIN):
         user = User(**userinfo)
+        print(f'found {user}')
         login_user(user)
+        print('user logged in - redirecting')
         return redirect('/')
     else:
         return Response(status=503)
@@ -80,6 +86,7 @@ def callback():
 @app.route("/logout")
 @login_required
 def logout():
+    print('logout start')
     logout_user()
     return redirect('https://accounts.google.com/Logout')
 
@@ -88,6 +95,7 @@ def logout():
 @app.route('/check-in')
 @login_required
 def check_in_get():
+    print('check-in get start')
     query = request.args.get('query')
     id = request.args.get('id')
     results = None
