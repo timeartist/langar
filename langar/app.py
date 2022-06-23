@@ -22,6 +22,8 @@ lm = LoginManager()
 lm.init_app(app)
 lm.login_view = 'login'
 
+_redirect_url_base = lambda: request.base_url.replace('http://', 'https://')
+
 @lm.user_loader
 def load_user(id):
     try:
@@ -40,9 +42,10 @@ def login():
 
     # Use library to construct the request for Google login and provide
     # scopes that let you retrieve user's profile from Google
+
     request_uri = WAC.prepare_request_uri(
         authorization_endpoint,
-        redirect_uri=request.base_url.replace('http', 'https') + "/callback",
+        redirect_uri=_redirect_url_base() + "/callback",
         scope=["openid", "email", "profile"],
     )
     return redirect(request_uri)
@@ -57,8 +60,8 @@ def callback():
     # Prepare and send a request to get tokens! Yay tokens!
     token_url, headers, body = WAC.prepare_token_request(
         token_endpoint,
-        authorization_response=request.url.replace('http', 'https'),
-        redirect_url=request.base_url.replace('http', 'https'),
+        authorization_response=request.url.replace('http://', 'https://'),
+        redirect_url=_redirect_url_base(),
         code=code
     )
     token_response = requests.post(

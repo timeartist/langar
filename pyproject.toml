@@ -9,7 +9,7 @@ license = "Unlicense"
 langar = "langar.app:run"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "~3.8"
 Flask = "^2.1.1"
 redis = "^4.2.2"
 requests = "^2.27.1"

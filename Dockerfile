@@ -1,4 +1,4 @@
-FROM python
+FROM python:3.8
 
 RUN apt update
 RUN apt install -y nginx gcc musl-dev libffi-dev curl git rustc openssl gettext-base

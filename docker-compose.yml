@@ -17,6 +17,8 @@ services:
       - "443:443"
     depends_on:
       - redis
+    volumes:
+      - /opt/langar/data:${DATA_DIR}:rw
   redis:
     image: redislabs/redisearch:2.4.3
 
