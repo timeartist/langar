@@ -21,6 +21,9 @@ _checkin_file_headers = ['id', 'zip_code', 'dob', 'adults', 'minors', 'seniors']
 _client_key = lambda id: f'client:{id}'
 _client_file_headers =  keys = ['id', 'first_name', 'last_name', 'dob', 'zip_code', 'phone_number', 'email_address', 'homelessness', 'adults', 'minors', 'seniors']
 
+def reset_db():
+    R.flushall()
+    Client.batch_from_csv()
 
 class Client:
     def __init__(self, first_name, last_name, dob, zip_code, adults, minors, seniors,

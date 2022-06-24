@@ -6,7 +6,8 @@ authors = ["Adi Wabisabi <adi@nederlandfoodpantry.org>"]
 license = "Unlicense"
 
 [tool.poetry.scripts]
-langar = "langar.app:run"
+langar_web = "langar.app:run"
+langar_db = "langar.models:reset_db"
 
 [tool.poetry.dependencies]
 python = "~3.8"

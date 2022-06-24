@@ -33,4 +33,4 @@ WORKDIR ${INSTALL_DIR}
 COPY . .
 RUN poetry install
 ENV PYTHONUNBUFFERED=1
-CMD nginx && poetry run gunicorn --enable-stdio-inheritance -w 2 langar.app:app
+CMD nginx && poetry run langar_db && poetry run gunicorn --enable-stdio-inheritance -w 2 langar.app:app

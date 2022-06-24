@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, redirect, Response
 from flask_login import LoginManager, login_user, login_required, logout_user
 from oauthlib.oauth2 import WebApplicationClient
 
-from langar.models import Client, CheckIn, User, UserNotFoundException
+from langar.models import Client, CheckIn, User, UserNotFoundException, reset_db
 
 ALLOWED_EMAIL_DOMAIN = environ.get('ALLOWED_EMAIL_DOMAIN', 'nederlandfoodpantry.org')
 GOOGLE_CLIENT_ID = environ.get('GOOGLE_OAUTH_CLIENT_ID')
@@ -139,5 +139,5 @@ def register_post():
     return render_template('register.html', success=True)
 
 def run():
-    Client.batch_from_csv()
+    reset_db()
     app.run(debug=True, ssl_context="adhoc")
