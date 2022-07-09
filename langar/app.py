@@ -111,7 +111,11 @@ def check_in_get():
         checkins = CheckIn(**client).checkins_to_list()
     ## finding client path
     elif query is not None:
-        results = Client.find(query)
+        if '"' not in query:
+            _query = f'{query}*'
+        else:
+            _query = query
+        results = Client.find(_query)
         checkins = CheckIn().checkins_to_list()
     ## default path
     else:
