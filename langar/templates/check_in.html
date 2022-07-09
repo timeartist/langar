@@ -5,6 +5,7 @@
         .container-form, .container-table{padding-right:30px;}
         .alert{margin-right:30px;}
         .add-client-button{width:150px; float:right; margin-right:30px;}
+        .download-button{width:150px; float:right; margin-right:30px;}
         td, th{text-align: center;}
     </style>
 {% endblock %}
@@ -91,7 +92,12 @@
                 &nbsp;
             </div>
             <div class="row">
-                <h4>Today's Distribution</h4>
+                <div class="col">
+                    <h4>Today's Distribution</h4>
+                </div>
+                <div class="col">
+                    <a href="/download/today"><button type="button" class="btn btn-secondary download-button">Download&nbsp;<i class="bi bi-download"></i></button></a>
+                </div>
             </div>
             <div class="row">
                 <div class="container-table">

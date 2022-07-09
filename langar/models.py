@@ -144,6 +144,11 @@ class CheckIn:
     def checkins_to_list(self):
         return self._checkins
 
+    def stream_file(self):
+        with open(self.file, 'r') as f:
+            for row in f.read():
+                yield row
+
 class UserNotFoundException(Exception):
     pass
 

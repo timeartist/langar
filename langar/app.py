@@ -138,6 +138,15 @@ def register_post():
     CheckIn(**client.__dict__)
     return render_template('register.html', success=True)
 
+@app.route('/download/<string:what>')
+@login_required
+def download(what:str):
+    checkin = CheckIn()
+    if what.lower() == 'today':
+        return Response(checkin.stream_file(), mimetype='text/csv', headers={"content-disposition":"attachment; filename=" + checkin.file.split('/')[-1]})
+    else:
+        return Response(status_code=404)
+
 def run():
     reset_db()
     app.run(debug=True, ssl_context="adhoc")
