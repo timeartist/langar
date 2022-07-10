@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, redirect, Response
 from flask_login import LoginManager, login_user, login_required, logout_user
 from oauthlib.oauth2 import WebApplicationClient
 
-from langar.models import Client, CheckIn, User, UserNotFoundException, reset_db
+from langar.models import Client, CheckIn, CheckIns, User, UserNotFoundException, reset_db
 
 ALLOWED_EMAIL_DOMAIN = environ.get('ALLOWED_EMAIL_DOMAIN', 'nederlandfoodpantry.org')
 GOOGLE_CLIENT_ID = environ.get('GOOGLE_OAUTH_CLIENT_ID')
@@ -121,11 +121,7 @@ def check_in_get():
     else:
         checkins = CheckIn().checkins_to_list()
 
-    totals = {'adults':0, 'minors':0, 'seniors':0}
-    for checkin in checkins:
-        totals['adults'] += int(checkin['adults'])
-        totals['minors'] += int(checkin['minors'])
-        totals['seniors'] += int(checkin['seniors'])
+    totals = _get_totals(checkins)
 
     return render_template('check_in.html', results=results, query=query, checkins=checkins, totals=totals, clients=Client.batch_to_dict(), client=client)
     
@@ -145,11 +141,47 @@ def register_post():
 @app.route('/download/<string:what>')
 @login_required
 def download(what:str):
-    checkin = CheckIn()
     if what.lower() == 'today':
+        checkin = CheckIn()
         return Response(checkin.stream_file(), mimetype='text/csv', headers={"content-disposition":"attachment; filename=" + checkin.file.split('/')[-1]})
     else:
-        return Response(status_code=404)
+        checkins = CheckIns()
+        what_split = what.split('-')
+        
+        if len(what_split) == 2:
+            return Response(checkins.stream_month_file(what), mimetype='text/csv')
+        elif len(what_split) == 3:
+            return Response(checkins.stream_day_file(what), mimetype='text/csv')
+        else:
+            return Response(status_code=404)
+
+@app.route('/reports')
+@login_required
+def reports():
+    checkins = CheckIns()
+    _type =  request.args.get('type', '')
+    if _type == 'daily':
+        selected = request.args.get('when-daily')
+        checkins_list = checkins.day_list(selected)
+    elif _type == 'monthly':
+        selected = request.args.get('when-monthly')
+        checkins_list = checkins.month_list(selected)
+    else:
+        checkins_list = checkins.month_list(checkins.months[0])
+        selected = ''
+
+    totals = _get_totals(checkins_list)
+    
+    return render_template('reports.html', months=checkins.months, days=checkins.days, checkins=checkins_list, totals=totals, selected=selected, type=_type)
+
+def _get_totals(checkins):
+    totals = {'adults':0, 'minors':0, 'seniors':0}
+    for checkin in checkins:
+        totals['adults'] += int(checkin['adults'])
+        totals['minors'] += int(checkin['minors'])
+        totals['seniors'] += int(checkin['seniors'])
+
+    return totals
 
 def run():
     reset_db()

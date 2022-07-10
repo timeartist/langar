@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block header %}
+    <style type="text/css">
+        .container-main{margin-top: 20px; margin-left: 10px;}
+        .container-form, .container-table{padding-right:30px;}
+        .alert{margin-right:30px;}
+        .download-button, .search-button{width:150px; float:right; margin-right:30px;}
+        td, th{text-align: center;}
+    </style>
+{% endblock %}
+{% block body %}
+    <div class="container-fluid container-main">
+        <div class="row">
+            <h2>Reports</h2> 
+        </div>
+        <div class="row">
+            &nbsp;
+        </div>
+        <div class="row">
+            <form>
+                <div class="form-group">
+                    <label for="type">Type:</label>
+                    <select id="type" name="type" class="form-control">
+                        <option value="monthly" {{'selected' if type == "monthly"}}>Monthly</option>
+                        <option value="daily" {{'selected' if type == "daily"}}>Daily</option> 
+                    </select>
+                </div>
+                &nbsp;
+                <div class="form-group">
+                    <label for="when">When:</label>
+                    <select id="when-monthly" name="when-monthly" class="form-control" style="{{'display: none;' if type == 'daily' else ''}}">
+                        {% for month in months %}
+                            {% if month == selected %}
+                                <option selected>{{month}}</option>
+                            {% else %}
+                                <option>{{month}}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <select id="when-daily" name="when-daily" class="form-control" style="{{'display: none;' if not type or type == 'monthly' else ''}}">
+                        {% for day in days %}
+                            {% if day == selected %}
+                                <option selected>{{day}}</option>
+                            {% else %}
+                                <option>{{day}}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <p></p>
+                <button class="btn btn-outline-success search-button" type="submit">Search</button>
+            </form>
+        </div>
+        {% if checkins %}
+            <div class="row">
+                &nbsp;
+            </div>
+            <div class="row">
+                <div class="col">
+                    <a href="/download/{{selected or months[0]}}"><button type="button" class="btn btn-secondary download-button">Download&nbsp;<i class="bi bi-download"></i></button></a>
+                </div>
+            </div>
+            <div class="row">
+                &nbsp;
+            </div>
+            <div class="row">
+                <div class="container-table">
+                    <table class="table">
+                        <thead>
+                            {% if not type or type == 'monthly' %}
+                                <th scope="col">Date</th>
+                            {% endif %}
+                            <th scope="col">ID</th>
+                            <th scope="col">Adults</th>
+                            <th scope="col">Children</th>
+                            <th scope="col">Seniors</th>
+                        </thead>
+                        <tbody>
+                            {% for checkin in checkins %}
+                                <tr>
+                                    {% if not type or type == 'monthly' %}
+                                        <th>
+                                            {{checkin['date']}}
+                                        </th>
+                                    {% endif %}
+                                    <th>
+                                        {{checkin['id']}}
+                                    </th>
+                                    <td>
+                                        {{checkin['adults']}}
+                                    </td>
+                                    <td>
+                                        {{checkin['minors']}}
+                                    </td>
+                                    <td>
+                                        {{checkin['seniors']}}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            <tr>
+                                {% if not type or type == 'monthly' %}
+                                    <td></td>
+                                {% endif %}
+                                <td>
+                                    <b>Households:</b> {{ checkins|length }}
+                                </td>
+                                <td>
+                                    {{totals['adults']}}
+                                </td>
+                                <td>
+                                    {{totals['minors']}}
+                                </td>
+                                <td>
+                                    {{totals['seniors']}}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+{% block js %}
+    <script type="text/javascript">
+        
+        $("#type").change(function () {
+            var which = $(this).val();
+            if (which === 'daily') {
+                $('#when-monthly').hide()
+                $("#when-daily").show();
+            } else {
+                $('#when-daily').hide();
+                $('#when-monthly').show();
+            }   
+        });
+
+    </script>
+{% endblock %}

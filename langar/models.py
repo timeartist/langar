@@ -1,9 +1,11 @@
-from os import environ
+from os import environ, stat, remove
+from os.path import join, split
 from uuid import uuid4
 from json import loads
 from csv import DictReader, DictWriter
 from datetime import datetime
 from glob import glob
+from io import StringIO
 
 from flask_login import UserMixin
 
@@ -15,9 +17,11 @@ from redis.commands.search.query import Query
 from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 
 R = StrictRedis.from_url(environ.get('REDIS_URL', 'redis://localhost:6379'))
+DISTRIBUTIONS_DIR = 'data/distributions'
 
 _checkin_key = lambda id: f'checkin:{id}'
-_checkin_file_headers = ['id', 'zip_code', 'dob', 'adults', 'minors', 'seniors']
+_day_checkin_file_headers = ['id', 'zip_code', 'dob', 'adults', 'minors', 'seniors']
+_month_checkin_file_headers = ['date', 'id', 'zip_code', 'dob', 'adults', 'minors', 'seniors']
 _client_key = lambda id: f'client:{id}'
 _client_file_headers =  keys = ['id', 'first_name', 'last_name', 'dob', 'zip_code', 'phone_number', 'email_address', 'homelessness', 'adults', 'minors', 'seniors']
 
@@ -104,10 +108,29 @@ class Client:
 
         return idx
 
-class CheckIn:
+class CheckinBase:
+    
+    def _open_distribution_file(self, file):
+        with open(file, 'r') as f:
+            rows = DictReader(f)
+            return [row for row in rows]
+
+    def _month_day_from_file(self, file):
+            _file = split(file)[-1]
+            _file = _file.split('.')[0]
+            split_file = _file.split('-')
+            return '-'.join(split_file[1:-1]), '-'.join(split_file[1:]) 
+
+    def _stream_file(self, file):
+        with open(file, 'r') as f:
+            for row in f.read():
+                yield row
+
+
+class CheckIn(CheckinBase):
     def __init__(self, id=None, zip_code=None, dob=None, adults=None, minors=None, seniors=None, **_) -> None:
         self.date = datetime.today().isoformat().split('T')[0]
-        self.file = f'data/distributions/distribution-{self.date}.csv'
+        self.file = join(DISTRIBUTIONS_DIR, f'distribution-{self.date}.csv')
         self.id = id
         self.zip_code = zip_code
         self.dob = dob
@@ -116,14 +139,9 @@ class CheckIn:
         self.seniors = seniors
         self._checkins = []
 
-        ## create checkin file if it doesn't exist already
-        if not glob(self.file):
-            open(self.file, 'w+') 
-        ## otherwise open and read it
-        else:
-            with open(self.file, 'r') as f:
-                rows = DictReader(f)
-                self._checkins = [row for row in rows]
+        ## read any existing checkins
+        if glob(self.file):
+            self._checkins = self._open_distribution_file(self.file)
 
         ## if this is a new checkin, add it to redis and the data file
         if self.id is not None:
@@ -136,8 +154,8 @@ class CheckIn:
             data.pop('_checkins')
             self._checkins.append(data)
 
-            with open(self.file, 'w') as f:
-                dw = DictWriter(f, _checkin_file_headers)
+            with open(self.file, 'w+') as f:
+                dw = DictWriter(f, _day_checkin_file_headers)
                 dw.writeheader()
                 dw.writerows(self._checkins)
 
@@ -145,9 +163,67 @@ class CheckIn:
         return self._checkins
 
     def stream_file(self):
-        with open(self.file, 'r') as f:
-            for row in f.read():
-                yield row
+        self._stream_file(self.file)
+
+class CheckIns(CheckinBase):
+    def __init__(self) -> None:
+        self.files = glob(join(DISTRIBUTIONS_DIR, '*.csv'))
+        self.months = set()
+        self.days = []
+        
+        for file in self.files:
+            if stat(file).st_size > 0:
+                month, day = self._month_day_from_file(file)
+                self.months.add(month)
+                self.days.append(day)
+            else:
+                remove(file)
+                self.files.remove(file)
+
+
+        self.months = list(self.months)
+        self.months.sort(reverse=True)
+        self.days.sort(reverse=True)
+
+    def day_list(self, day:str):
+        for file in self.files:
+            if day in file:
+                return self._open_distribution_file(file)
+
+    def month_list(self, month:str):
+        _checkins = {}
+        for file in self.files:
+            if month in file:
+                _, day = self._month_day_from_file(file)
+                _checkins[day] = self._open_distribution_file(file)
+
+        checkins_final = []
+        for date, checkins in _checkins.items():
+            for checkin in checkins:
+                checkin['date'] = date
+                checkins_final.append(checkin)
+
+        checkins_final.sort(key=lambda x: x['date'])
+
+        return checkins_final
+
+    def stream_day_file(self, day:str):
+        for file in self.files:
+            if day in file:
+                return self._stream_file(file)
+
+    def stream_month_file(self, month:str):
+        month_list = self.month_list(month)
+        stream = StringIO()
+        
+        dw = DictWriter(stream, _month_checkin_file_headers)
+        dw.writeheader()
+        dw.writerows(month_list)
+
+        stream.seek(0)
+        for i in stream:
+            yield i
+            
 
 class UserNotFoundException(Exception):
     pass
