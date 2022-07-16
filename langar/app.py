@@ -120,7 +120,8 @@ def check_in_get():
     ## default path
     else:
         checkins = CheckIn().checkins_to_list()
-
+    
+    checkins.reverse()
     totals = _get_totals(checkins)
 
     return render_template('check_in.html', results=results, query=query, checkins=checkins, totals=totals, clients=Client.batch_to_dict(), client=client)
