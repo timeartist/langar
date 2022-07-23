@@ -1,4 +1,5 @@
 from os import urandom, environ
+from pydoc import cli
 
 import requests
 from flask import Flask, render_template, request, redirect, Response
@@ -108,7 +109,10 @@ def check_in_get():
     if id is not None:
         _results = Client.find(f'@id:{id}')
         client = _results[0]
-        checkins = CheckIn(**client).checkins_to_list()
+        checkins = CheckIn().checkins_to_list()
+        existing_checkin_ids = [checkin['id'] for checkin in checkins]
+        if id not in existing_checkin_ids:
+            checkins = CheckIn(**client).checkins_to_list()
     ## finding client path
     elif query is not None:
         if '"' not in query:
