@@ -127,8 +127,19 @@ def check_in_get():
     
     checkins.reverse()
     totals = _get_totals(checkins)
-
+    
     return render_template('check_in.html', results=results, query=query, checkins=checkins, totals=totals, clients=Client.batch_to_dict(), client=client)
+
+@app.route('/check-in/today/<string:guid>', methods=['PUT'])
+def modify_checkin(guid):
+    CheckIn.update_existing(guid, **request.form)
+    return 'success', 200
+
+@app.route('/check-in/today/<string:guid>', methods=['DELETE'])
+def delete_checkin(guid):
+    CheckIn.delete(guid)
+    return 'success', 200
+    
     
 @app.route('/register')
 @login_required

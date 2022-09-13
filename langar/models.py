@@ -108,12 +108,20 @@ class Client:
 
         return idx
 
-class CheckinBase:
+class CheckInBase:
     
-    def _open_distribution_file(self, file):
+    @staticmethod
+    def _open_distribution_file(file):
         with open(file, 'r') as f:
             rows = DictReader(f)
             return [row for row in rows]
+
+    @staticmethod
+    def _save_distribution_file(file, checkins):
+            with open(file, 'w+') as f:
+                dw = DictWriter(f, _day_checkin_file_headers)
+                dw.writeheader()
+                dw.writerows(checkins)
 
     def _month_day_from_file(self, file):
             _file = split(file)[-1]
@@ -127,7 +135,7 @@ class CheckinBase:
                 yield row
 
 
-class CheckIn(CheckinBase):
+class CheckIn(CheckInBase):
     def __init__(self, id=None, zip_code=None, dob=None, adults=None, minors=None, seniors=None, **_) -> None:
         self.date = datetime.today().isoformat().split('T')[0]
         self.file = join(DISTRIBUTIONS_DIR, f'distribution-{self.date}.csv')
@@ -141,11 +149,11 @@ class CheckIn(CheckinBase):
 
         ## read any existing checkins
         if glob(self.file):
-            self._checkins = self._open_distribution_file(self.file)
+            self._checkins = CheckIn._open_distribution_file(self.file)
 
         ## if this is a new checkin, add it to redis and the data file
         if self.id is not None:
-            R.json().set(_checkin_key(self.id), Path.root_path(), self.__dict__)
+            # R.json().set(_checkin_key(self.id), Path.root_path(), self.__dict__)
             
             ## filter out any data we don't want in the file from the obj, and add this 
             data = self.__dict__.copy()
@@ -154,18 +162,44 @@ class CheckIn(CheckinBase):
             data.pop('_checkins')
             self._checkins.append(data)
 
-            with open(self.file, 'w+') as f:
-                dw = DictWriter(f, _day_checkin_file_headers)
-                dw.writeheader()
-                dw.writerows(self._checkins)
+            CheckIn._save_distribution_file(self.file, self._checkins)
+
 
     def checkins_to_list(self):
         return self._checkins
 
+    @staticmethod
+    def delete(id):
+        date = datetime.today().isoformat().split('T')[0]
+        file = join(DISTRIBUTIONS_DIR, f'distribution-{date}.csv')
+        checkins = CheckIn._open_distribution_file(file)
+        for checkin in checkins:
+            if checkin['id'] == id:
+                print(checkin)
+                break
+        
+        checkins.remove(checkin)
+
+        CheckIn._save_distribution_file(file, checkins)
+
+    @staticmethod
+    def update_existing(id, adults, minors, seniors):
+        date = datetime.today().isoformat().split('T')[0]
+        file = join(DISTRIBUTIONS_DIR, f'distribution-{date}.csv')
+        checkins = CheckIn._open_distribution_file(file)
+        for checkin in checkins:
+            if checkin['id'] == id:
+                print(checkin)
+                checkin['adults'] = adults
+                checkin['minors'] = minors
+                checkin['seniors'] = seniors
+
+        CheckIn._save_distribution_file(file, checkins)
+
     def stream_file(self):
         self._stream_file(self.file)
 
-class CheckIns(CheckinBase):
+class CheckIns(CheckInBase):
     def __init__(self) -> None:
         self.files = glob(join(DISTRIBUTIONS_DIR, '*.csv'))
         self.months = set()

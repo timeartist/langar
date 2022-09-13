@@ -5,6 +5,10 @@
         .container-form, .container-table{padding-right:30px;}
         .alert{margin-right:30px;}
         .add-client-button, .download-button{width:150px; float:right; margin-right:30px;}
+        .modify-checkin, .remove-checkin{color:#000; text-decoration: none; background-color: transparent;}
+        .modify-checkin:hover{color: #12a116;}
+        .remove-checkin:hover{color: crimson;}
+        .modify-checkin-input{width: 40px; text-align: center;}
         td, th{text-align: center;}
     </style>
 {% endblock %}
@@ -50,7 +54,7 @@
                             {% for result in results %}
                                 <tr>
                                     <th scope="row">
-                                        {{result['id']}}
+                                        {{result['id'][-9:]}}
                                     </th>
                                     <td>
                                         {{result['first_name']}}
@@ -99,6 +103,11 @@
                 </div>
             </div>
             <div class="row">
+                <div class="col">
+                    <b>Households:</b> {{ checkins|length }}
+                </div>
+            </div>
+            <div class="row">
                 &nbsp;
             </div>
             <div class="row">
@@ -111,33 +120,43 @@
                             <th scope="col">Adults</th>
                             <th scope="col">Children</th>
                             <th scope="col">Seniors</th>
+                            <th scope="col"></th>
                         </thead>
                         <tbody>
                             {% for checkin in checkins %}
-                                <tr>
+                                <tr class="checkin-row">
                                     <th scope="row">
-                                        {{checkin['id']}}
+                                        {{checkin['id'][-9:]}}
                                     </th>
-                                    <td>
+                                    <td id="{{checkin['id']}}-firstName">
                                         {{clients[checkin['id']]['first_name']}}
                                     </td>
-                                    <td>
+                                    <td id="{{checkin['id']}}-lastName">
                                         {{clients[checkin['id']]['last_name']}}
                                     </td>
-                                    <td>
+                                    <td id="{{checkin['id']}}-adults">
                                         {{checkin['adults']}}
                                     </td>
-                                    <td>
+                                    <td id="{{checkin['id']}}-minors">
                                         {{checkin['minors']}}
                                     </td>
-                                    <td>
+                                    <td id="{{checkin['id']}}-seniors">
                                         {{checkin['seniors']}}
+                                    </td>
+                                    <td>
+                                        <a href="#" class="modify-checkin" id="{{checkin['id']}}-modify-checkin-link" role="button" onclick=modify('{{checkin["id"]}}') data-bs-toggle="tooltip"  title="Modify Check-In">
+                                            <i id="{{checkin['id']}}-modify-checkin-icon"  class="modify-checkin bi bi-pencil-fill"></i>
+                                        </a>
+                                        &nbsp;&nbsp;
+                                        <a href="#" class="btn remove-checkin" id="{{checkin['id']}}-remove-checkin-link" role="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop" onclick=fillRemoveConfirmModal("{{checkin['id']}}")>
+                                            <i id="{{checkin['id']}}-remove-checkin-icon" class="remove-checkin bi bi-x-circle-fill" data-bs-toggle="tooltip"  title="Remove Check-In"></i>
+                                        </a>
                                     </td>
                                 </tr>
                             {% endfor %}
                             <tr>
                                 <td>
-                                    <b>Households:</b> {{ checkins|length }}
+                                    &nbsp;
                                 </td>
                                 <td></td>
                                 <th scope="row">
@@ -160,4 +179,75 @@
             </div>
         {% endif %}
     </div>
+    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="staticBackdropLabel">Confirmation</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <span id="confirmationModalText"></span>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+              <button type="button" class="btn btn-danger" id="confirmationModalYes">Yes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+{% endblock %}
+{% block js %}
+<script type="text/javascript">
+    function modify(id) {
+        const adultsCount = parseInt($(`#${id}-adults`).text());
+        const minorsCount = parseInt($(`#${id}-minors`).text());
+        const seniorsCount = parseInt($(`#${id}-seniors`).text());
+        $(`#${id}-adults`).html(`<input class="modify-checkin-input" type="text" id="${id}-modify-adults" value=${adultsCount}>`);
+        $(`#${id}-minors`).html(`<input class="modify-checkin-input" type="text" id="${id}-modify-minors" value=${minorsCount}>`);
+        $(`#${id}-seniors`).html(`<input class="modify-checkin-input" type="text" id="${id}-modify-seniors" value=${seniorsCount}>`);
+        $(`#${id}-modify-checkin-icon`).removeClass('bi-pencil-fill');
+        $(`#${id}-modify-checkin-icon`).addClass('bi-check-circle-fill');
+        $(`#${id}-modify-checkin-icon`).removeAttr('onclick');
+        $(`#${id}-remove-checkin-link`).removeAttr('data-bs-toggle');
+        $(`#${id}-remove-checkin-link`).removeAttr('onclick');
+        $(`#${id}-remove-checkin-icon`).removeClass('bi-x-circle-fill');
+        $(`#${id}-remove-checkin-icon`).addClass('bi-arrow-counterclockwise');
+        $(`#${id}-remove-checkin-icon`).click((event) => {
+            location.reload();
+        });
+        $(`#${id}-modify-checkin-icon`).click((_) => {
+            const newAdults = $(`#${id}-modify-adults`).val();
+            const newMinors = $(`#${id}-modify-minors`).val();
+            const newSeniors = $(`#${id}-modify-seniors`).val();
+            const update = {adults: newAdults, minors: newMinors, seniors: newSeniors};
+            console.log(update);
+            $.ajax({
+                type: 'PUT',
+                url: `/check-in/today/${id}`,
+                data: update,
+                success: () => {
+                    location.href = '../';
+                }
+            });
+        });
+
+
+    }
+    function fillRemoveConfirmModal(id) {
+        const firstName = $(`#${id}-firstName`).text().trim();
+        const lastName = $(`#${id}-lastName`).text().trim();
+        $('#confirmationModalText').text(`Are you sure you want to remove ${firstName} ${lastName} from today's distribution?`);
+        $('#confirmationModalYes').click((_) => {
+            console.log('clique!');
+            $.ajax({
+                type: 'DELETE',
+                url: `/check-in/today/${id}`,
+                success: () => {
+                    location.href = '../'
+                }
+            });
+        });
+    }
+</script>
 {% endblock %}
