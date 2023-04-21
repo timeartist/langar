@@ -135,13 +135,13 @@
                                         {{clients[checkin['id']]['last_name']}}
                                     </td>
                                     <td id="{{checkin['id']}}-adults">
-                                        {{checkin['adults']}}
+                                        {{checkin['adults'] or 0}}
                                     </td>
                                     <td id="{{checkin['id']}}-minors">
-                                        {{checkin['minors']}}
+                                        {{checkin['minors'] or 0}}
                                     </td>
                                     <td id="{{checkin['id']}}-seniors">
-                                        {{checkin['seniors']}}
+                                        {{checkin['seniors'] or 0}}
                                     </td>
                                     <td>
                                         <a href="#" class="modify-checkin" id="{{checkin['id']}}-modify-checkin-link" role="button" onclick=modify('{{checkin["id"]}}') data-bs-toggle="tooltip"  title="Modify Check-In">

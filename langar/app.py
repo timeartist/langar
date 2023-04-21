@@ -115,6 +115,7 @@ def check_in_get():
             checkins = CheckIn(**client).checkins_to_list()
     ## finding client path
     elif query is not None:
+        query = query.strip()
         if '"' not in query:
             _query = f'{query}*'
         else:
@@ -193,9 +194,9 @@ def reports():
 def _get_totals(checkins):
     totals = {'adults':0, 'minors':0, 'seniors':0}
     for checkin in checkins:
-        totals['adults'] += int(checkin['adults'])
-        totals['minors'] += int(checkin['minors'])
-        totals['seniors'] += int(checkin['seniors'])
+        totals['adults'] += int(checkin['adults'] or 0)
+        totals['minors'] += int(checkin['minors'] or 0)
+        totals['seniors'] += int(checkin['seniors'] or 0)
 
     return totals
 
