@@ -23,7 +23,7 @@ _checkin_key = lambda id: f'checkin:{id}'
 _day_checkin_file_headers = ['id', 'zip_code', 'dob', 'adults', 'minors', 'seniors']
 _month_checkin_file_headers = ['date', 'id', 'zip_code', 'dob', 'adults', 'minors', 'seniors']
 _client_key = lambda id: f'client:{id}'
-_client_file_headers =  keys = ['id', 'first_name', 'last_name', 'dob', 'zip_code', 'phone_number', 'email_address', 'homelessness', 'adults', 'minors', 'seniors']
+_client_file_headers =  keys = ['id', 'first_name', 'last_name', 'dob', 'zip_code', 'phone_number', 'email_address', 'homelessness', 'adults', 'minors', 'seniors', 'date_added']
 
 def reset_db():
     R.flushall()
@@ -31,7 +31,7 @@ def reset_db():
 
 class Client:
     def __init__(self, first_name, last_name, dob, zip_code, adults, minors, seniors,
-                 phone_number=None, email_address=None, homelessness='false', **_) -> None:
+                 phone_number=None, email_address=None, homelessness='false', date_added=datetime.now().strftime('%Y-%m-%d'), **_) -> None:
         self.id = str(uuid4()).replace('-', '')
         self.first_name = first_name
         self.last_name = last_name
@@ -43,6 +43,7 @@ class Client:
         self.adults = int(adults)
         self.minors = int(minors)
         self.seniors = int(seniors)
+        self.date_added = date_added
         
 
     @staticmethod
@@ -109,7 +110,6 @@ class Client:
         return idx
 
 class CheckInBase:
-    
     @staticmethod
     def _open_distribution_file(file):
         with open(file, 'r') as f:
