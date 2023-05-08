@@ -20,8 +20,8 @@ R = StrictRedis.from_url(environ.get('REDIS_URL', 'redis://localhost:6379'))
 DISTRIBUTIONS_DIR = 'data/distributions'
 
 _checkin_key = lambda id: f'checkin:{id}'
-_day_checkin_file_headers = ['id', 'zip_code', 'dob', 'adults', 'minors', 'seniors']
-_month_checkin_file_headers = ['date', 'id', 'zip_code', 'dob', 'adults', 'minors', 'seniors']
+_day_checkin_file_headers = ['id', 'zip_code', 'dob', 'adults', 'minors', 'seniors', 'new']
+_month_checkin_file_headers = ['date', 'id', 'zip_code', 'dob', 'adults', 'minors', 'seniors', 'new']
 _client_key = lambda id: f'client:{id}'
 _client_file_headers =  keys = ['id', 'first_name', 'last_name', 'dob', 'zip_code', 'phone_number', 'email_address', 'homelessness', 'adults', 'minors', 'seniors', 'date_added']
 
@@ -136,8 +136,8 @@ class CheckInBase:
 
 
 class CheckIn(CheckInBase):
-    def __init__(self, id=None, zip_code=None, dob=None, adults=None, minors=None, seniors=None, **_) -> None:
-        self.date = datetime.today().isoformat().split('T')[0]
+    def __init__(self, id=None, zip_code=None, dob=None, adults=None, minors=None, seniors=None, date_added=None, **_) -> None:
+        self.date = datetime.now().strftime('%Y-%m-%d')
         self.file = join(DISTRIBUTIONS_DIR, f'distribution-{self.date}.csv')
         self.id = id
         self.zip_code = zip_code
@@ -145,6 +145,7 @@ class CheckIn(CheckInBase):
         self.adults = adults
         self.minors = minors
         self.seniors = seniors
+        self.new = int(date_added == self.date)
         self._checkins = []
 
         ## read any existing checkins
