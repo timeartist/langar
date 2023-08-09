@@ -31,7 +31,7 @@ def reset_db():
 
 class Client:
     def __init__(self, first_name, last_name, dob, zip_code, adults, minors, seniors,
-                 phone_number=None, email_address=None, homelessness='false', date_added=datetime.now().strftime('%Y-%m-%d'), **_) -> None:
+                 phone_number=None, email_address=None, homelessness='false', date_added=None, **_) -> None:
         self.id = str(uuid4()).replace('-', '')
         self.first_name = first_name
         self.last_name = last_name
@@ -43,7 +43,7 @@ class Client:
         self.adults = int(adults)
         self.minors = int(minors)
         self.seniors = int(seniors)
-        self.date_added = date_added
+        self.date_added = date_added or datetime.now().strftime('%Y-%m-%d')
         
 
     @staticmethod
