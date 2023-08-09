@@ -15,8 +15,8 @@ def update_distribution_file(file_path, clients):
     new_file_path = file_path.replace('.csv', '_updated.csv')
     with open(file_path, 'r') as input_file, open(new_file_path, 'w', newline='') as output_file:
         reader = csv.DictReader(input_file)
-        fieldnames = reader.fieldnames + ['new']
-        writer = csv.DictWriter(output_file, fieldnames=fieldnames)
+        # fieldnames = reader.fieldnames + ['new']
+        writer = csv.DictWriter(output_file, fieldnames=reader.fieldnames)
         
         writer.writeheader()
         for row in reader:
